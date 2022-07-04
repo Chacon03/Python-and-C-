@@ -1,0 +1,271 @@
+import re
+
+
+man = open('Prueba.txt')
+#--------------------------Regular expressions---------------------------------------------#
+pattern_module ='module '
+pattern_input ='input [a-z]|input [A-Z]'
+pattern_output = 'output [a-z]|output [A-Z]'
+pattern_input_A = 'input \[.*\]'
+pattern_output_A = 'output \[.*\]'
+#------------------------------------------------------------------------------------------#
+
+Input=[]
+Output=[]
+Input_A=[]
+Output_A=[]
+TestBench =[]
+
+#--------------------------Get variables---------------------------------------------#
+for linea in man:
+    #--------------------------Module-----------------------------------------#
+    if re.search(pattern_module,linea):
+        linea = linea.strip()
+        result = linea.replace(pattern_module,"")
+        Module = result
+    #-------------------------------------------------------------------------#
+    #--------------------------Input 1 bit------------------------------------#
+    if re.search(pattern_input,linea):
+        linea = linea.strip()
+        result1 = linea.replace('input',"")
+        result1 = result1.replace(" ","")
+        x = len(result1)
+        if (result1[x-1]==','):
+                result1 = result1.rstrip(result1[-1])
+        result1 = result1.split(',')
+        Input.append(result1) 
+    #-------------------------------------------------------------------------#
+    #--------------------------Output 1 bit-----------------------------------# 
+    if re.search(pattern_output,linea):
+        linea = linea.strip()
+        result2 = linea.replace('output',"")
+        result2 = result2.replace(" ","")
+        x = len(result2)
+        if (result2[x-1]==','):
+                result2 = result2.rstrip(result2[-1])
+        result2 = result2.split(',')
+        Output.append(result2)
+    #-------------------------------------------------------------------------#
+    #--------------------------Input Array------------------------------------# 
+    if re.search(pattern_input_A,linea):
+        linea = linea.strip()
+        result3 = linea.replace('input',"")
+        result3 = result3.lstrip()
+        result3 = result3.replace("]","],")
+        result3 = result3.replace(" ","")
+        x = len(result3)
+        if (result3[x-1]==','):
+                result3 = result3.rstrip(result3[-1])
+        result3 = result3.split(',')
+        Input_A.append(result3)
+    #-------------------------------------------------------------------------#
+    #--------------------------Output Array-----------------------------------# 
+    if re.search(pattern_output_A,linea):
+        linea = linea.strip()
+        result4 = linea.replace('output',"")
+        result4 = result4.lstrip()
+        result4 = result4.replace("]","],")
+        result4 = result4.replace(" ","")
+        x = len(result4)
+        if (result4[x-1]==','):
+                result4 = result4.rstrip(result4[-1])
+        result4 = result4.split(',')
+        Output_A.append(result4)
+    #-------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------------#       
+
+
+
+
+#/////////////////////////////Top Testbench/////////////////////////////////////////////////#
+
+#**************************Variable declarations********************************************#  
+
+#--------------------------Module-----------------------------------------------------------#
+line = ''
+line += 'module '
+line += Module
+line += '_TB;\n'
+TestBench.append(line)
+
+#-------------------------------------------------------------------------------------------# 
+#--------------------------Input 1 bit------------------------------------------------------#
+line = ''
+line += 'reg '
+for x in range(len(Input)):
+    for y in range(len(Input[x])):
+        if(y == len(Input[x])-1):
+            line += Input[x][y]
+            line += '_TB;\n'
+        else:
+            line += Input[x][y]
+            line += '_TB, ' 
+TestBench.append(line)
+#-------------------------------------------------------------------------------------------# 
+#--------------------------Input Vector-----------------------------------------------------#
+for x in range(len(Input_A)):
+    line = ''
+    line += 'reg '
+    for y in range(len(Input_A[x])):
+        if(Input_A[x][y][0] == '['):
+            line += Input_A[x][y]
+            line += ' '
+        else:    
+            if(y == len(Input_A[x])-1):
+                line += Input_A[x][y]
+                line += '_TB;\n'
+            else:
+                line += Input_A[x][y]
+                line += '_TB, ' 
+    TestBench.append(line)
+#-------------------------------------------------------------------------------------------# 
+#--------------------------Output 1 bit-----------------------------------------------------#
+line = ''
+line += 'wire '
+for x in range(len(Output)):
+    for y in range(len(Output[x])):
+        if(y == len(Output[x])-1):
+            line += Output[x][y]
+            line += '_TB;\n'
+        else:
+            line += Output[x][y]
+            line += '_TB, ' 
+TestBench.append(line)
+#-------------------------------------------------------------------------------------------# 
+#--------------------------Output Vector----------------------------------------------------#
+for x in range(len(Output_A)):
+    line = ''
+    line += 'wire '
+    for y in range(len(Output_A[x])):
+        if(Output_A[x][y][0] == '['):
+            line += Output_A[x][y]
+            line += ' '
+        else:    
+            if(y == len(Output_A[x])-1):
+                line += Output_A[x][y]
+                line += '_TB;\n'
+            else:
+                line += Output_A[x][y]
+                line += '_TB, ' 
+    TestBench.append(line)
+#-------------------------------------------------------------------------------------------# 
+#*******************************************************************************************#  
+
+
+
+#**************************Instantiation***************************************************#  
+
+#--------------------------Module----------------------------------------------------------#
+Insta = ''
+Insta +=  Module
+Insta += " UUT (."
+Insta += Input[0][0]
+Insta += "("
+Insta += Input[0][0]
+Insta += "_TB)"
+
+#-------------------------------------------------------------------------------------------# 
+#--------------------------Input 1 bit------------------------------------------------------#
+for x in range(len(Input)):
+    for y in range(1,len(Input[x])):
+        Insta += ",."
+        Insta += Input[x][y]
+        Insta += "("
+        Insta += Input[x][y]
+        Insta += "_TB)"
+#-------------------------------------------------------------------------------------------# 
+#--------------------------Input Vector-----------------------------------------------------#     
+for x in range(len(Output)):
+    for y in range(0,len(Output[x])):
+        Insta += ",."
+        Insta += Output[x][y]
+        Insta += "("
+        Insta += Output[x][y]
+        Insta += "_TB)"
+#-------------------------------------------------------------------------------------------# 
+#--------------------------Output 1 bit-----------------------------------------------------#       
+for x in range(len(Input_A)):
+    for y in range(1,len(Input_A[x])):
+        Insta += ",."
+        Insta += Input_A[x][y]
+        Insta += "("
+        Insta += Input_A[x][y]
+        Insta += "_TB)"
+#-------------------------------------------------------------------------------------------# 
+#--------------------------Output Vector----------------------------------------------------#      
+for x in range(len(Output_A)):
+    for y in range(1,len(Output_A[x])):
+        Insta += ",."
+        Insta += Output_A[x][y]
+        Insta += "("
+        Insta += Output_A[x][y]
+        Insta += "_TB)"
+Insta += ");\n"
+TestBench.append(Insta)
+TestBench.append("initial\n begin\n")
+#-------------------------------------------------------------------------------------------# 
+
+#*******************************************************************************************#  
+
+#///////////////////////////////////////////////////////////////////////////////////////////#
+
+
+
+#/////////////////////////////Bottom Testbench//////////////////////////////////////////////#
+
+#**************************Variable initialization******************************************#  
+
+#--------------------------Input 1 bit------------------------------------------------------#
+temp = ''
+for x in range(len(Input[0])):
+    temp += ("   //")
+    temp += Input[0][x]
+    temp += ("_TB = 1b'0;\n")
+    TestBench.append(temp)
+    temp = ''
+#-------------------------------------------------------------------------------------------#   
+print(TestBench) 
+#--------------------------Input Vector-----------------------------------------------------#
+temp = ''
+Tem_Numb = ''
+Number = ''
+for x in range(len(Input_A)):
+    for y in range(len(Input_A[x])):
+        V_find = Input_A[x][y].find("[")
+        P_find = Input_A[x][y].find(":")
+        if( V_find >= 0):
+            V_find += 1
+            for t in range(V_find,P_find):
+                Number += Input_A[x][y][t]
+            Number = int(Number)+1
+        else:
+            temp += ("   begin\n    //for(int i=0;i<")
+            temp += str(2**int(Number))
+            temp += (";i++)\n     //")
+            temp += Input_A[x][y]
+            temp += ("_TB = i;\n     //#1;\n   end\n")
+            TestBench.append(temp)
+            temp = ''
+    Number = ''        
+#-------------------------------------------------------------------------------------------#   
+print(TestBench) 
+temp = ''
+temp += "  end\nendmodule"
+TestBench.append(temp)
+
+#*******************************************************************************************#  
+
+#///////////////////////////////////////////////////////////////////////////////////////////#
+
+
+
+
+#--------------------------Document writing--------------------------------------------------#
+
+file = open("TestBench.sv", "w")
+for x in range(len(TestBench)):
+    file.write(TestBench[x])
+file.close()
+
+#-------------------------------------------------------------------------------------------# 
+
