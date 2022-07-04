@@ -1,0 +1,40 @@
+module mux_2to1_TB;
+reg Q_TB, W_TB, Y_TB, E_TB, G_TB, H_TB, J_TB;
+reg [10:0] X_TB, Y_TB;
+reg [5:0] Sel_TB;
+reg [2:0] KOl__TB;
+wire Z_TB, K_TB, J_TB;
+wire [5:0] Sel_2_TB;
+wire [4:0] Suma_TB;
+mux_2to1 UUT (.Q(Q_TB),.W(W_TB),.Y(Y_TB),.E(E_TB),.G(G_TB),.H(H_TB),.J(J_TB),.Z(Z_TB),.K(K_TB),.J(J_TB),.X(X_TB),.Y(Y_TB),.Sel(Sel_TB),.KOl_(KOl__TB),.Sel_2(Sel_2_TB),.Suma(Suma_TB));
+initial
+ begin
+   //Q_TB = 1b'0;
+   //W_TB = 1b'0;
+   //Y_TB = 1b'0;
+   //E_TB = 1b'0;
+   //G_TB = 1b'0;
+   //H_TB = 1b'0;
+   //J_TB = 1b'0;
+   begin
+    //for(int i=0;i<2048;i++)
+     //X_TB = i;
+     //#1;
+   end
+   begin
+    //for(int i=0;i<2048;i++)
+     //Y_TB = i;
+     //#1;
+   end
+   begin
+    //for(int i=0;i<64;i++)
+     //Sel_TB = i;
+     //#1;
+   end
+   begin
+    //for(int i=0;i<8;i++)
+     //KOl__TB = i;
+     //#1;
+   end
+  end
+endmodule
