@@ -1,0 +1,330 @@
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <regex>
+#include <vector>
+#include <cmath>
+using namespace std;
+vector<string> Separate(string names);
+string String_Test(vector<string> names);
+vector<string> Vector_Test(vector<string> names);
+int main()
+{
+    ifstream file("archivo.txt");
+    vector<string> File0;
+    vector<string> Import;
+    string input_Import;
+    string input,output,input_a,output_a,Module;
+    vector<string> Input,Output,Input_A,Output_A,Input_A_V,Output_A_V,TestBench;
+    while(!file.eof()){
+        getline(file, input_Import);
+        if(find(std::begin(input_Import), end(input_Import), ';') == end(input_Import)){
+            Import.push_back(input_Import);
+        }
+        else
+            break;
+    }
+    File0 = Import;
+    file.close();
+
+    //--------------------------Get variables---------------------------------------------#
+    int g;
+    for(int i=0; i<File0.size();i++) {
+        //--------------------------Module-----------------------------------------#
+        string target = File0[i];
+        //-------------------------------------------------------------------------#
+        smatch sm;
+        regex re(
+                "\\s*(input|output|module)\\s+(\\[.*\\])?(.*)");
+        string Temp;
+        while (regex_search(target, sm, re)) {
+            //--------------------------Input --------------------------------------#
+            if (sm.str(1) == "input") {
+                int a = sm.str(2).find('[');
+                //--------------------------Input Vector----------------------------#
+                if (a >= 0) {
+                    Temp.append(sm.str(2));
+                    Temp.replace(Temp.find(']'), 1, "],");
+                    Temp.erase(std::remove(Temp.begin(), Temp.end(), ' '), Temp.end());
+                    input_a.append(Temp);
+                    Temp.clear();
+                    Temp.append(sm.str(3));
+                    Temp.erase(std::remove(Temp.begin(), Temp.end(), ' '), Temp.end());
+                    input_a.append(Temp);
+                }
+                //------------------------------------------------------------------#
+                //--------------------------Input 1 bit-----------------------------#
+                else {
+                    Temp.append(sm.str(3));
+                    Temp.erase(std::remove(Temp.begin(), Temp.end(), ' '), Temp.end());
+                    input.append(Temp);
+                }
+                //------------------------------------------------------------------#
+            }
+            //-------------------------------------------------------------------------#
+            //--------------------------Output ----------------------------------------#
+            else if (sm.str(1) == "output"){
+                int a = sm.str(2).find('[');
+                //--------------------------Output Vector---------------------------#
+                if(a >= 0){
+                    Temp.append(sm.str(2));
+                    Temp.replace(Temp.find(']'),1,"],");
+                    Temp.erase(std::remove(Temp.begin(), Temp.end(), ' '), Temp.end());
+                    output_a.append(Temp);
+                    Temp.clear();
+                    Temp.append(sm.str(3));
+                    Temp.erase(std::remove(Temp.begin(), Temp.end(), ' '), Temp.end());
+                    output_a.append(Temp);
+                }
+                //------------------------------------------------------------------#
+                // --------------------------Output 1 bit---------------------------#
+                else{
+                    Temp.append(sm.str(3));
+                    Temp.erase(std::remove(Temp.begin(), Temp.end(), ' '), Temp.end());
+                    output.append(Temp);
+                }
+                //------------------------------------------------------------------#
+            }
+            else if (sm.str(1) == "module") {
+                Temp.append(sm.str(3));
+                Temp.erase(std::remove(Temp.begin(), Temp.end(), ' '), Temp.end());
+                Module.append(Temp);
+            }
+            //-------------------------------------------------------------------------#
+            Temp.clear();
+            target = sm.suffix();
+        }
+    }
+    //-----------------------------------------------------------------------------------#
+    //--------------------------Separate variables---------------------------------------#
+    Input = Separate(input);
+    Output = Separate(output);
+    Input_A = Separate(input_a);
+    Output_A = Separate(output_a);
+    //------------------------------------------------------------------------------------#
+
+
+
+
+    //****************************Top Testbench********************************************
+    //+++++++++++++++++++++++++Variable declarations+++++++++++++++++++++++++++++++++++++++
+
+    //--------------------------Module----------------------------------------------------#
+    string Test;
+    Test.append("module ");
+    Test.append(Module);
+    Test.append("_TB;");
+    TestBench.push_back(Test);
+    //-----------------------------------------------------------------------------------#
+    //--------------------------Input 1 bit----------------------------------------------#
+    Test.clear();
+    Test.append("reg ");
+    Test.append(String_Test(Input));
+    TestBench.push_back(Test);
+    //-----------------------------------------------------------------------------------#
+    //--------------------------Input Vector---------------------------------------------#
+    Input_A_V = Vector_Test(Input_A);
+    for(int i=0; i<Input_A_V.size();i++){
+        Test.clear();
+        Test.append("reg ");
+        Test.append(Input_A_V[i]);
+        TestBench.push_back(Test);
+    }
+    //-----------------------------------------------------------------------------------#
+    //--------------------------Output 1 bit---------------------------------------------#
+    Test.clear();
+    Test.append("wire ");
+    Test.append(String_Test(Output));
+    TestBench.push_back(Test);
+    //-----------------------------------------------------------------------------------#
+    //--------------------------Output Vector--------------------------------------------#
+    Output_A_V = Vector_Test(Output_A);
+    for(int i=0; i<Output_A_V.size();i++){
+        Test.clear();
+        Test.append("wire ");
+        Test.append(Output_A_V[i]);
+        TestBench.push_back(Test);
+    }
+    //-----------------------------------------------------------------------------------#
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+    //+++++++++++++++++++++++++Instantiation++++++++++++++++++++++++++++++++++++++++++++++
+
+    //--------------------------Module----------------------------------------------------#
+    Test.clear();
+    Test.append(Module);
+    Test.append(" UUT(.");
+    Test.append(Input[0]);
+    Test.append("(");
+    Test.append(Input[0]);
+    Test.append("_TB)");
+    //-----------------------------------------------------------------------------------#
+    //--------------------------Input 1 bit----------------------------------------------#
+    for(int i=1; i<Input.size();i++){
+        Test.append(",.");
+        Test.append(Input[i]);
+        Test.append("(");
+        Test.append(Input[i]);
+        Test.append("_TB)");
+    }
+    //-----------------------------------------------------------------------------------#
+    //--------------------------Output 1 bit---------------------------------------------#
+    for(int i=0; i<Output.size();i++){
+        Test.append(",.");
+        Test.append(Output[i]);
+        Test.append("(");
+        Test.append(Output[i]);
+        Test.append("_TB)");
+    }
+    //-----------------------------------------------------------------------------------#
+    //--------------------------Input Vector---------------------------------------------#
+    for(int i=0; i<Input_A.size();i++){
+        int q = Input_A[i].find('[');
+        if(q < 0){
+            Test.append(",.");
+            Test.append(Input_A[i]);
+            Test.append("(");
+            Test.append(Input_A[i]);
+            Test.append("_TB)");
+        }
+    }
+    //-----------------------------------------------------------------------------------#
+    //--------------------------Output Vector--------------------------------------------#
+    for(int i=0; i<Output_A.size();i++){
+        int q = Output_A[i].find('[');
+        if(q < 0){
+            Test.append(",.");
+            Test.append(Output_A[i]);
+            Test.append("(");
+            Test.append(Output_A[i]);
+            Test.append("_TB)");
+        }
+    }
+    //-----------------------------------------------------------------------------------#
+    Test.append(";");
+    TestBench.push_back(Test);
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //************************************************************************************
+
+    //****************************Bottom Testbench*****************************************
+    //+++++++++++++++++++++++++Variable initialization+++++++++++++++++++++++++++++++++++++
+
+    //--------------------------Input 1 bit----------------------------------------------#
+    Test.clear();
+    Test.append("initial\n begin");
+    TestBench.push_back(Test);
+    Test.clear();
+    for (int j=0;j<Input.size();j++) {
+        Test.append("   //");
+        Test.append(Input[j]);
+        Test.append("_TB = 1b'0;");
+        TestBench.push_back(Test);
+        Test.clear();
+    }
+    //-----------------------------------------------------------------------------------#
+    //--------------------------Input Vector---------------------------------------------#
+    int V_find;
+    int P_find;
+    string Number;
+    string T_Temp;
+    Test.clear();
+    for (int j=0;j<Input_A.size();j++) {
+        V_find = Input_A[j].find("[");
+        P_find = Input_A[j].find(":");
+        if (V_find >= 0) {
+            for(int hj=V_find+1;hj<P_find;hj++){
+                Number= Input_A[j][hj];
+                T_Temp.append(Number);
+            }
+            Number = to_string(int(pow(2,stoi(T_Temp) + 1)));
+            T_Temp.clear();
+        }
+        else {
+            Test.append("   begin\n    //for(int i=0;i<");
+            Test.append(Number);
+            Test.append(";i++)\n     //");
+            Test.append(Input_A[j]);
+            Test.append("_TB = i;\n     #1;\n   end");
+            TestBench.push_back(Test);
+            Test.clear();
+        }
+    }
+    //-----------------------------------------------------------------------------------#
+    Test.clear();
+    Test.append(" end\nendmodule");
+    TestBench.push_back(Test);
+    //-----------------------------------------------------------------------------------#
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+    //--------------------------Document writing-----------------------------------------#
+    ofstream file2;
+    file2.open("C:/Users/Chacon/CLionProjects/untitled10/cmake-build-debug/Testbench.sv");
+    for (string x : TestBench){
+        file2 << x << '\n';
+    }
+    file2.close();
+    //-----------------------------------------------------------------------------------#
+
+}
+
+
+vector<string> Separate(string names){
+    vector<string> Variables;
+    string lectura;
+    stringstream input_stringstream(names);
+    while (getline(input_stringstream, lectura, ',')) {
+        Variables.push_back(lectura);
+    }
+    return Variables;
+}
+
+string String_Test(vector<string> names) {
+    string name;
+    for (int i = 0; i < names.size(); i++) {
+        name.append(names[i]);
+        if (i == names.size() - 1) {
+            name.append("_TB;");
+        } else {
+            name.append("_TB,");
+        }
+    }
+    return name;
+}
+
+vector<string> Vector_Test(vector<string> names) {
+    string Temp;
+    string name;
+    vector<string> Salida;
+    int bandera = 0;
+    for (int i = 0; i < names.size(); i++) {
+        Temp = names[i];
+        int f = Temp.find('[');
+        if(f>=0){
+            bandera += 1;
+            if(bandera >= 2){
+                name.erase(name.size()-1,1);
+                name.append(";");
+                Salida.push_back(name);
+                name.clear();
+            }
+            name.append(names[i]);
+            name.append(" ");
+        }
+        else{
+            if (i == names.size() - 1) {
+                name.append(names[i]);
+                name.append("_TB;");
+                Salida.push_back(name);
+
+            } else {
+                name.append(names[i]);
+                name.append("_TB,");
+            }
+        }
+    }
+    return Salida;
+}
